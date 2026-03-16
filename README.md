@@ -1,6 +1,5 @@
 # 메일상자 팀 (2026-1학기 캡스톤디자인 2조)
 
-
 ## 🔥 서비스 소개
 
 > 메일상자는 AI 기술을 활용하여 이메일과 관련된 문제를 해결하는 팀입니다.
@@ -9,17 +8,18 @@
 
 | 이름 | 학과 | 이메일 | 역할 |
 | --- | --- | --- | --- |
-| 곽민서([@mkms8436](https://github.com/mkms8436)) | 소프트웨어학과 | mkms0222@ajou.ac.kr | FrontEnd Developer |
-| 김휘래([@rlagnlfo1004](https://github.com/rlagnlfo1004)) | 소프트웨어학과 | hrkim2001@ajou.ac.kr | BackEnd Developer |
-| 천진강([@jjjjjk12](https://github.com/jjjjjk12)) | 소프트웨어학과 | jjjjjk12@ajou.ac.kr | BackEnd Developer |
-| 한동현([@asitisdev](https://github.com/asitisdev)) | 소프트웨어학과 | hando1220@ajou.ac.kr | FrontEnd / Infra Developer |
+| 곽민서 ([@mkms8436](https://github.com/mkms8436)) | 소프트웨어학과 | mkms0222@ajou.ac.kr | 프론트엔드 개발 |
+| 김휘래 ([@rlagnlfo1004](https://github.com/rlagnlfo1004)) | 소프트웨어학과 | hrkim2001@ajou.ac.kr | 팀장 / 백엔드 개발 |
+| 천진강 ([@jjjjjk12](https://github.com/jjjjjk12)) | 소프트웨어학과 | jjjjjk12@ajou.ac.kr | 인프라 / 백엔드 개발 |
+| 한동현 ([@asitisdev](https://github.com/asitisdev)) | 소프트웨어학과 | hando1220@ajou.ac.kr | 인프라 / 프론트엔드 개발 |
 
 ## ✅ 협업 방식
 
-> 효율적인 협업을 위해 GitHub을 활용한 명확한 컨벤션을 수립하여 진행했습니다.
+> 효율적인 협업을 위해 GitHub를 활용한 명확한 컨벤션을 수립하여 진행했습니다.
 
 <details>
 <summary><b>1. Issue 규칙</b></summary>
+<br>
 
 **컨벤션**
 
@@ -30,9 +30,8 @@
 | Template | 각 유형(feature / bug / refactor)에 맞는 템플릿 형식 유지      |
 | Task 작성  | 작업 상세 내용은 체크박스로 작성하여 추적 가능하게 유지                   |
 
-<br></br>
-
 **예시**
+
 - Feature Issue 예시
     ```
     Title: [Feat] 영상 업로드 API 구현
@@ -69,13 +68,13 @@
     
     ## 📚 참고 자료
     없음
-    
     ```
 
 </details>
 
 <details>
 <summary><b>2. Branch 규칙</b></summary>
+<br>
 
 **컨벤션**
 
@@ -85,22 +84,19 @@
 | Prefix   | `feat`, `fix`, `refactor`, `docs` 등 issue type과 일치 |
 | Issue 연동 | 브랜치명에 GitLab issue number 반드시 포함                    |
 
-
-<br></br>
-
 **예시**
 
 ```
-feat/#75/createProjectForm
-fix/#102/loginFailure
-refactor/#88/encodingServiceLogic
-
+feat/#75/create-project-form
+fix/#102/login-failure
+refactor/#88/encoding-service-logic
 ```
 
 </details>
 
 <details>
 <summary><b>3. Commit 규칙</b></summary>
+<br>
 
 **컨벤션**
 
@@ -111,9 +107,6 @@ refactor/#88/encodingServiceLogic
 | Message      | 한글로 작성, 파일명/디렉토리명 명시 금지                                       |
 | 공백 규칙        | `:` 뒤에만 공백 존재                                                 |
 
-
-<br></br>
-
 **예시**
 
 ```
@@ -121,13 +114,13 @@ feat: 예약 기능 validation 추가
 fix: 로그인 실패 처리 로직 수정
 refactor: 인코딩 서비스 코드 구조 재정비
 docs: README API 문서 업데이트
-
 ```
 
 </details>
 
 <details>
 <summary><b>4. Merge Request 규칙</b></summary>
+<br>
 
 **컨벤션**
 
@@ -137,9 +130,6 @@ docs: README API 문서 업데이트
 | MR Template | default 템플릿 형식 유지    |
 | 관련 이슈       | `#이슈번호` 반드시 연결       |
 | 설명          | 작업 요약 + 변경 사항 명확히 기재 |
-
-
-<br></br>
 
 **예시**
 
@@ -158,8 +148,6 @@ Title: [Feat] Vercel 배포 스크립트 및 Git Action 추가 #64
 
 ## 📚 참고 자료
 없음
-
 ```
 
 </details>
-

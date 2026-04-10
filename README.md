@@ -8,7 +8,7 @@
 
 | 이름 | 학과 | 이메일 | 역할 |
 | --- | --- | --- | --- |
-| 곽민서 ([@mkms8436](https://github.com/mkms8436)) | 소프트웨어학과 | mkms0222@ajou.ac.kr | 프론트엔드 개발 |
+| 곽민서 ([@mkms0222](https://github.com/mkms0222)) | 소프트웨어학과 | mkms0222@ajou.ac.kr | 프론트엔드 개발 |
 | 김휘래 ([@rlagnlfo1004](https://github.com/rlagnlfo1004)) | 소프트웨어학과 | hrkim2001@ajou.ac.kr | 팀장 / 백엔드 개발 |
 | 천진강 ([@jjjjjk12](https://github.com/jjjjjk12)) | 소프트웨어학과 | jjjjjk12@ajou.ac.kr | 인프라 / 백엔드 개발 |
 | 한동현 ([@asitisdev](https://github.com/asitisdev)) | 소프트웨어학과 | hando1220@ajou.ac.kr | 인프라 / 프론트엔드 개발 |

@@ -173,66 +173,65 @@ Google Pub/Sub과 Gmail API를 통해 신규 메일 이벤트를 수신하고, R
 
 ### 소프트웨어 아키텍처
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                         클라이언트                               │
-│    React 19 + TypeScript + TanStack Router/Query + shadcn/ui    │
-│    PWA (Service Worker) · Amplitude · Firebase(FCM)             │
-└────────────────────────┬────────────────────────────────────────┘
-                         │ HTTPS
-┌────────────────────────▼────────────────────────────────────────┐
-│                      Core (HTTP API 서버)                        │
-│   Spring Boot 4 · Java 21 · Spring Security · Spring MVC       │
-│                                                                  │
-│  Gmail OAuth 연동  ──→  Pub/Sub 수신  ──→  MQ 발행              │
-│  Controller → Facade → Classifier → Publisher                   │
-└──────────┬──────────────────────────────────────────────────────┘
-           │ RabbitMQ (DirectExchange + DLX)
-┌──────────▼──────────────────────────────────────────────────────┐
-│                     Worker (비동기 처리)                          │
-│   Spring Boot 4 · Java 21                                       │
-│                                                                  │
-│  Listener (Facade 역할) → Handler → ApiService/CommandService   │
-│  Gmail 동기화 · 라벨 분류 · 벡터 임베딩 · FCM Push 발송          │
-└──────────┬──────────────────────────────────────────────────────┘
-           │
-┌──────────▼──────────────────────────────────────────────────────┐
-│                       데이터 레이어                               │
-│   PostgreSQL (pgvector 확장)  ·  Redis  ·  RabbitMQ            │
-└─────────────────────────────────────────────────────────────────┘
-           │
-┌──────────▼──────────────────────────────────────────────────────┐
-│                     외부 서비스                                   │
-│   Gmail API  ·  Google Pub/Sub  ·  LLM API  ·  Portone(결제)   │
-└─────────────────────────────────────────────────────────────────┘
+```mermaid
+graph TD
+    Client["🖥️ 클라이언트\nReact 19 · TypeScript\nTanStack Router/Query · shadcn/ui\nPWA · Amplitude · Firebase(FCM)"]
+
+    Core["⚙️ Core (HTTP API 서버)\nSpring Boot 4 · Java 21\nSpring Security · Spring MVC\n\nGmail OAuth 연동 → Pub/Sub 수신 → MQ 발행\nController → Facade → Classifier → Publisher"]
+
+    Worker["🔧 Worker (비동기 처리)\nSpring Boot 4 · Java 21\n\nListener → Handler → ApiService / CommandService\nGmail 동기화 · 라벨 분류 · 벡터 임베딩 · FCM Push"]
+
+    DB["🗄️ 데이터 레이어\nPostgreSQL (pgvector) · Redis · RabbitMQ"]
+
+    External["🌐 외부 서비스\nGmail API · Google Pub/Sub · LLM API · Portone(결제)"]
+
+    Client -- HTTPS --> Core
+    Core -- "RabbitMQ\n(DirectExchange + DLX)" --> Worker
+    Worker --> DB
+    Core --> DB
+    Core <--> External
+    Worker <--> External
 ```
 
 #### 메시지 처리 흐름 (비동기)
 
-```
-[Google Pub/Sub]
-      │  Gmail 변경 이벤트 (Webhook)
-      ▼
-[Core — Facade]
-  Classifier → 이벤트 타입 분류
-  Publisher  → RabbitMQ 발행 (mail.message-added / mail.label-sync 등)
-      │  즉시 응답 (DB Write 없음)
-      ▼
-[RabbitMQ — DirectExchange]
-      │  큐: mailsangja.{taskName}
-      ▼
-[Worker — Listener (비즈니스 Facade 역할)]
-  Handler → Gmail API 조회 → CommandService → PostgreSQL 저장
-  Handler → LLM API → 라벨 추천 / 임베딩 생성
-  Handler → FCM → Push 알림 발송
-      │  실패 시 → DLQ → Dead Letter Alert
+```mermaid
+sequenceDiagram
+    participant PS as Google Pub/Sub
+    participant C as Core (Facade)
+    participant MQ as RabbitMQ
+    participant W as Worker (Listener)
+    participant G as Gmail API
+    participant LLM as LLM API
+    participant DB as PostgreSQL
+    participant FCM as FCM
+
+    PS->>C: Gmail 변경 이벤트 (Webhook)
+    C->>C: Classifier — 이벤트 타입 분류
+    C->>MQ: Publisher — 메시지 발행
+    Note over C: 즉시 응답 (DB Write 없음)
+    MQ->>W: 큐: mailsangja.{taskName}
+    W->>G: Gmail API 조회
+    G-->>W: 메일 데이터
+    W->>DB: CommandService — PostgreSQL 저장
+    W->>LLM: 라벨 추천 / 임베딩 생성
+    LLM-->>W: 결과
+    W->>FCM: Push 알림 발송
+    Note over MQ,W: 실패 시 → DLQ → Dead Letter Alert
 ```
 
 #### 레이어 의존성 (단방향)
 
-```
-Controller → Facade → CommandService / QueryService → Repository (Port)
-                   ↘ ApiService (외부 API 호출)
+```mermaid
+graph LR
+    Controller --> Facade
+    Facade --> CommandService
+    Facade --> QueryService
+    Facade --> ApiService
+    CommandService --> Repository
+    QueryService --> Repository
+    ApiService["ApiService\n(외부 API 호출)"]
+    Repository["Repository (Port)"]
 ```
 
 ---

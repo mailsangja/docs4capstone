@@ -175,7 +175,7 @@ Google Pub/Sub과 Gmail API를 통해 신규 메일 이벤트를 수신하고, R
 
 ```mermaid
 graph TD
-    Client["🖥️ 클라이언트\nReact 19 · TypeScript\nTanStack Router/Query · shadcn/ui\nPWA · Amplitude · Firebase(FCM)"]
+    Client["🖥️ 클라이언트\nReact 19 · TypeScript\nTanStack Start/Router/Query \nPWA (FCM)"]
 
     Core["⚙️ Core (HTTP API 서버)\nSpring Boot 4 · Java 21\nSpring Security · Spring MVC\n\nGmail OAuth 연동 → Pub/Sub 수신 → MQ 발행\nController → Facade → Classifier → Publisher"]
 
@@ -243,6 +243,7 @@ graph LR
 | [`mailsangja/docs4capstone`](https://github.com/mailsangja/docs4capstone) | User Story 이슈 관리, 기획 문서 | GitHub Projects |
 | [`mailsangja/mailsangja-server`](https://github.com/mailsangja/mailsangja-server) | 백엔드 서버 (core + worker + db 멀티모듈) | Spring Boot 4 / Java 21 |
 | [`mailsangja/mailsangja-frontend`](https://github.com/mailsangja/mailsangja-frontend) | 프론트엔드 웹 앱 | React 19 / TypeScript / Vite |
+| [`mailsangja/mailsangja-infra`](https://github.com/mailsangja/mailsangja-infra) | k3s 클러스터 GitOps 매니페스트 및 Argo CD 배포 구성 | Kubernetes / Argo CD / Sealed Secrets |
 
 #### `mailsangja-server` 모듈 구조
 
@@ -269,30 +270,64 @@ mailsangja_server/
 │       ├── service/             # ApiService / CommandService / QueryService
 │       └── scheduler/           # Cron 트리거 (Watch 갱신 등)
 ├── docker/                      # 관측성 스택 설정 (Loki, Tempo, Alloy, Grafana)
-├── compose.yaml                 # 개발 환경 Docker Compose
-└── compose.production.yaml      # 운영 환경 Docker Compose
+└── compose.yaml                 # 로컬 개발 환경 Docker Compose
 ```
 
 #### `mailsangja-frontend` 구조
 
 ```
 mailsangja-frontend/
+├── .env.example      # 로컬 환경변수 템플릿
+├── .github/          # GitHub 협업 관련 템플릿 및 GitHub Actions CI/CD 워크플로우
+├── components.json   # shadcn/ui 설정
+├── docs/             # API, 푸시 알림 등 개발 참고 문서
+├── messages/         # i18n 원본 다국어 메시지
+├── public/           # 정적 에셋, PWA 아이콘, CNAME, robots.txt
 └── src/
-    ├── routes/
-    │   ├── _authenticated/      # 로그인 필요 라우트
-    │   │   ├── mail/            # 인박스, Thread 뷰
-    │   │   └── settings/        # 계정·라벨·알림 설정
-    │   └── _guest/              # 로그인 전 페이지
-    ├── components/
-    │   ├── compose/             # 메일 작성기 (Tiptap 에디터)
-    │   ├── thread/              # Thread 뷰 컴포넌트
-    │   ├── label/               # 라벨 관리
-    │   ├── sidebar/             # 사이드바 내비게이션
-    │   └── ui/                  # shadcn/ui 기반 공통 컴포넌트
-    ├── queries/                 # TanStack Query — 서버 상태 관리
-    ├── mutations/               # TanStack Query — 서버 상태 변경
-    ├── api/                     # API 클라이언트
-    └── paraglide/               # i18n (ko / en)
+    ├── api/            # 백엔드 API 호출 함수
+    ├── components/     # 화면/도메인/UI 컴포넌트
+    ├── hooks/          # 클라이언트 상태와 UI 보조 훅
+    ├── lib/            # 공통 유틸리티, API 클라이언트, PWA/FCM/분석 연동
+    ├── mutations/      # React Query mutation 훅
+    ├── paraglide/      # Paraglide 생성 산출물
+    ├── queries/        # React Query query 훅
+    ├── routes/         # TanStack Router 파일 기반 라우트
+    ├── service-worker/ # 서비스 워커 보조 모듈
+    ├── types/          # 도메인 타입 정의
+    └── sw.ts           # PWA/FCM 커스텀 서비스 워커
+```
+
+#### `mailsangja-infra` 구조
+
+```
+mailsangja-infra/
+├── bootstrap/
+│   └── root-app.yaml             # 클러스터 최초 1회 적용용 Argo CD root Application
+├── argocd/
+│   └── applications/             # Argo CD child Application 선언 (sync wave 기반)
+│       ├── 00-cert-manager.yaml
+│       ├── 00-sealed-secrets.yaml
+│       ├── 10-cert-manager-issuers.yaml
+│       ├── 20-argocd-ingress.yaml
+│       └── 40-mailsangja.yaml
+├── platform/
+│   ├── argocd-ingress/           # Argo CD Ingress 및 server 설정
+│   └── cert-manager-issuers/     # Let's Encrypt ClusterIssuer
+├── apps/
+│   └── mailsangja/               # MailSangja 애플리케이션 워크로드
+│       ├── namespace.yaml
+│       ├── configmap.yaml
+│       ├── sealedsecret-app.yaml
+│       ├── sealedsecret-infra.yaml
+│       ├── core.yaml             # core Deployment/Service (GHCR 이미지)
+│       ├── worker.yaml           # worker Deployment/Service (GHCR 이미지)
+│       ├── postgres.yaml         # PostgreSQL StatefulSet
+│       ├── redis.yaml            # Redis StatefulSet
+│       ├── rabbitmq.yaml         # RabbitMQ StatefulSet
+│       ├── observability.yaml    # Grafana, Loki, Tempo, Alloy
+│       └── ingress.yaml          # 서비스 Ingress 및 TLS
+├── docs/                         # GitOps 아키텍처, 릴리스 운영 문서
+└── scripts/                      # SealedSecret 생성 등 운영 보조 스크립트
 ```
 
 ---
@@ -321,6 +356,8 @@ mailsangja-frontend/
 
 ![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)
 ![GitHub Actions](https://img.shields.io/badge/GitHub_Actions-2088FF?style=for-the-badge&logo=githubactions&logoColor=white)
+![Kubernetes](https://img.shields.io/badge/Kubernetes-326CE5?style=for-the-badge&logo=kubernetes&logoColor=white)
+![Argo CD](https://img.shields.io/badge/Argo_CD-EF7B4D?style=for-the-badge&logo=argo&logoColor=white)
 ![Grafana](https://img.shields.io/badge/Grafana-F46800?style=for-the-badge&logo=grafana&logoColor=white)
 ![Loki](https://img.shields.io/badge/Grafana_Loki-F46800?style=for-the-badge&logo=grafana&logoColor=white)
 ![Tempo](https://img.shields.io/badge/Grafana_Tempo-F46800?style=for-the-badge&logo=grafana&logoColor=white)
@@ -379,13 +416,20 @@ main 브랜치 병합
   └─▶ [Build Docker Image]
         ├─ Gradle bootJar 빌드 (core / worker)
         ├─ Docker Buildx (linux/amd64 + linux/arm64 멀티플랫폼)
-        └─ GHCR(GitHub Container Registry) Push
+        └─ GHCR Push (ghcr.io/mailsangja/mailsangja-core:sha-<commit>, worker)
 
-이미지 빌드 완료
-  └─▶ [Deploy]
-        ├─ SSH → 운영 서버 접속
-        ├─ compose.production.yaml Pull & Up (postgres / core / worker)
-        └─ 수동 배포: workflow_dispatch로 이미지 태그 지정 가능 (롤백 지원)
+이미지 빌드 성공
+  └─▶ [Create Release PR]
+        ├─ mailsangja-infra 체크아웃
+        ├─ apps/mailsangja/core.yaml, worker.yaml 이미지 태그 갱신
+        └─ automation/mailsangja → main GitOps PR 생성/갱신
+
+GitOps PR 검토 및 머지
+  └─▶ [Argo CD Sync]
+        ├─ bootstrap/root-app.yaml → argocd/applications/* App of Apps 동기화
+        ├─ 40-mailsangja Application → apps/mailsangja 매니페스트 반영
+        ├─ core / worker Deployment rollout
+        └─ 이전 sha 이미지 태그로 되돌리는 Git 변경 기반 롤백
 ```
 
 #### 관측성 스택 (Observability)
@@ -404,7 +448,8 @@ main 브랜치 병합
 - Spring Security 기반 인증·인가 (`@AuthUser` / `@AuthAdmin` 어노테이션)
 - Gmail OAuth — 서비스 로그인과 분리된 별도 인박스 연동 흐름
 - 환경 변수로 민감 정보 관리 (하드코딩 금지, `@ConfigurationProperties` 사용)
-- GitHub Secrets — API Key, SSH Key, Codecov Token 관리
+- GitHub Secrets — Codecov Token, GitOps PR Token 관리
+- Sealed Secrets — Kubernetes Secret 평문을 Git에 저장하지 않고 암호화된 매니페스트로 관리
 
 #### 로컬 개발 환경 실행
 
@@ -467,7 +512,7 @@ npm run dev
 Sprint 단위로 작업 목표를 설정하고, **STORY → TASK** 두 단계로 이슈를 분리하여 관리했습니다.
 
 - **STORY** (`docs4capstone`): 사용자 관점의 기능 요구사항 정의
-- **TASK** (`mailsangja-server`): STORY를 기반으로 한 실제 구현 단위 작업
+- **TASK** (`mailsangja-server` / `mailsangja-frontend`): STORY를 기반으로 한 실제 구현 단위 작업
 
 각 TASK는 GitHub Projects Board에서 `Backlog → Ready → In Progress → Review → Done` 단계로 진행 상태를 추적하며, PR에서 `Closes #이슈번호`로 자동 종료됩니다.
 

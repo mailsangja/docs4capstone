@@ -20,6 +20,9 @@
 
 <br/>
 
+[메일상자 시연영상](https://github.com/user-attachments/assets/7380cda4-5d05-4051-b72e-4b2b220c378f)
+
+
 [![Service](https://img.shields.io/badge/🌐%20서비스%20바로가기-mail.ajou.app-4A90E2?style=for-the-badge)](https://mail.ajou.app/)
 
 </div>
